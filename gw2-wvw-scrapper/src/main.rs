@@ -6,7 +6,7 @@ async fn main() {
     let scheduler = JobScheduler::new().await.unwrap();
 
     // let job = Job::new_async("0 0 2,18 * * Friday,Saturday", |_, _| {
-    let job = Job::new_async("1/15 * * * * *", |_, _| {
+    let job = Job::new_async("* 1/15 * * * *", |_, _| {
         Box::pin(async move{
             dbg!("Running Job");
             let api = Gw2ApiWrapper::create();
@@ -24,5 +24,6 @@ async fn main() {
     scheduler.start().await.unwrap();
 
     // Wait a while so that the jobs actually run
-    tokio::time::sleep(core::time::Duration::from_secs(100)).await;
+    tokio::time::sleep(core::time::Duration::from_secs(7 * 24 * 60 * 60)).await;
+    dbg!("Sleep done");
 }
