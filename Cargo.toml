@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "gw2-api-wrapper",
+    "gw2-wvw-scrapper",
+    "gw2-info-persistence",
+]
