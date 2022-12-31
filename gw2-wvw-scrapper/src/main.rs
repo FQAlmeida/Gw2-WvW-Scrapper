@@ -5,8 +5,7 @@ use tokio_cron_scheduler::{Job, JobScheduler};
 async fn main() {
     let scheduler = JobScheduler::new().await.unwrap();
 
-    // let job = Job::new_async("0 0 2,18 * * Friday,Saturday", |_, _| {
-    let job = Job::new_async("* 1/15 * * * *", |_, _| {
+    let job = Job::new_async("0 0,59 1,2,17,18 * * *", |_, _| {
         Box::pin(async move{
             dbg!("Running Job");
             let api = Gw2ApiWrapper::create();
@@ -24,6 +23,7 @@ async fn main() {
     scheduler.start().await.unwrap();
 
     // Wait a while so that the jobs actually run
+    dbg!("All done, sleeping...");
     tokio::time::sleep(core::time::Duration::from_secs(7 * 24 * 60 * 60)).await;
     dbg!("Sleep done");
 }
