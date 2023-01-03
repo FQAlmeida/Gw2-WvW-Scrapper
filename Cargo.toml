@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "gw2-api-wrapper",
-    "gw2-wvw-scrapper",
+    "gw2-info-api",
     "gw2-info-persistence",
+    "gw2-wvw-scrapper",
 ]
