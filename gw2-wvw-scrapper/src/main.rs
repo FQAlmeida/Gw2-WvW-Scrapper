@@ -11,7 +11,7 @@ async fn main() {
     let default_basepath = String::from(".");
     let basepath = args.get(1).unwrap_or(&default_basepath).clone();
 
-    let job = Job::new_async("0 1/1 * * * *", move |_, _| {
+    let job = Job::new_async("0 1/15 * * * *", move |_, _| {
         let this_basepath = basepath.clone();
         Box::pin(async move {
             dbg!("Running Job");
