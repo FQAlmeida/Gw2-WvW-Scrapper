@@ -24,7 +24,7 @@ async fn main() {
             dbg!(&ids);
             let info = api.get_matchup_info(ids).await.unwrap();
             // dbg!(&info);
-            this_file_persistence.save(&info).unwrap();
+            this_file_persistence.save(&info).await.unwrap();
             dbg!("Saved");
         })
     })

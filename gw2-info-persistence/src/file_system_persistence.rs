@@ -1,4 +1,6 @@
-use std::{fs::File, io::Write};
+use std::{fs::File, io::Write, error::Error};
+
+use async_trait::async_trait;
 
 use crate::persistence_system_interface::PersistenceSystem;
 
@@ -7,11 +9,12 @@ pub struct FileSystemPersistence {
     basepath: String,
 }
 
+#[async_trait]
 impl PersistenceSystem for FileSystemPersistence {
-    fn save(
+    async fn save(
         &self,
         obj: &Vec<gw2_api_models::models::matchup_overview::MatchupOverview>,
-    ) -> Result<(), std::io::Error> {
+    ) -> Result<(), Box<dyn Error>> {
         for wvw_match in obj.iter() {
             let id = wvw_match.id();
             let start_time = wvw_match.start_time();
