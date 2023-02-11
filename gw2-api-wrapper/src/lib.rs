@@ -1,7 +1,5 @@
-use models::matchup_overview::MatchupOverview;
+use gw2_api_models::models::matchup_overview::MatchupOverview;
 use reqwest::{Client, ClientBuilder};
-
-pub mod models;
 
 pub struct Gw2ApiWrapper {
     client: Client,

@@ -1,6 +1,6 @@
 use std::{fs::File, io::Write};
 
-use gw2_api_wrapper::models::matchup_overview::MatchupOverview;
+use gw2_api_models::models::matchup_overview::MatchupOverview;
 
 pub fn save(basepath: &String, obj: Vec<MatchupOverview>) -> Result<(), std::io::Error> {
     for wvw_match in obj.iter() {

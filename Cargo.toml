@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "gw2-api-models",
     "gw2-api-wrapper",
     "gw2-info-api",
     "gw2-info-persistence",
