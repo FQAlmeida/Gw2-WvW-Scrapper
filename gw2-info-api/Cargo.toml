@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 rocket = { git = "https://github.com/SergioBenitez/Rocket", rev = "162fafa0f1b5d9045bf342356671859f0f21c4cc" }
+chrono = {version = "0.4.23"}
