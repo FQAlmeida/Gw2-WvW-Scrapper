@@ -5,5 +5,5 @@ members = [
     "gw2-info-api",
     "gw2-info-persistence",
     "gw2-wvw-scrapper",
-    "redis-conn-adapter",
+    "mongo-db-adapter",
 ]

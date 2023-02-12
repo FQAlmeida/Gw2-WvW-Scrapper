@@ -12,4 +12,3 @@ serde_json = {version = "1.0.92"}
 async-trait = {version = "0.1.64"}
 
 gw2-api-models = {path = "../gw2-api-models"}
-redis-conn-adapter = {path = "../redis-conn-adapter"}
