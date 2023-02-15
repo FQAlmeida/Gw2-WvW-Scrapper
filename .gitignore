@@ -22,3 +22,5 @@ target/
 
 data/**/*
 nohup.out
+
+.env

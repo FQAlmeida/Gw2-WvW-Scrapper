@@ -7,4 +7,6 @@ edition = "2021"
 
 [dependencies]
 serde = {version = "1.0.152", features = ["derive"]}
+serde_with = {version = "2.2.0", features = ["chrono_0_4", "macros", "json"]}
 getset = {version = "0.1.2"}
+chrono = {version = "0.4.23", features = ["serde"]}

@@ -20,7 +20,7 @@ impl PersistenceSystem for FileSystemPersistence {
             let start_time = wvw_match.start_time();
 
             // save to file named match_{id}_{start_time}.json
-            let filename = Self::gen_filename(id, start_time);
+            let filename = Self::gen_filename(id, &start_time.to_string());
             let mut fp = self.basepath.clone();
             fp.push('/');
             fp.push_str(&filename);
@@ -45,9 +45,9 @@ impl FileSystemPersistence {
             if !pd.exists() {
                 std::fs::create_dir_all(pd)?;
             }
-            dbg!(std::fs::canonicalize(&pd)?);
+            // dbg!(std::fs::canonicalize(&pd)?);
         }
-        dbg!(&fp);
+        // dbg!(&fp);
         let mut fd = File::create(&fp)?;
         fd.write_all(content)?;
         Ok(())
