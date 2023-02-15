@@ -1,5 +1,7 @@
+use chrono::Utc;
 use gw2_api_models::models::matchup_overview::MatchupOverview;
-use tokio_postgres::{tls::NoTlsStream, Config, NoTls, Socket};
+use models::MatchupOverviewPG;
+use tokio_postgres::{tls::NoTlsStream, Config, NoTls, Socket, types::Json};
 
 pub mod models;
 
@@ -42,14 +44,14 @@ impl PostgresClientAdapter {
         Self { client }
     }
 
-    async fn match_exists_statment(
+    async fn match_exists_statement(
         &self,
     ) -> Result<tokio_postgres::Statement, tokio_postgres::Error> {
         self.client.prepare_typed("SELECT EXISTS(SELECT 1 FROM \"MatchupInfos\" WHERE \"MatchupInfos\".id_matchup = $1 AND \"MatchupInfos\".initial_date_matchup = $2);", &[tokio_postgres::types::Type::VARCHAR, tokio_postgres::types::Type::TIMESTAMPTZ]).await
     }
 
     async fn match_exists(&self, data: &MatchupOverview) -> Result<bool, tokio_postgres::Error> {
-        let prepared = self.match_exists_statment().await?;
+        let prepared = self.match_exists_statement().await?;
         let result = self
             .client
             .query_one(&prepared, &[data.id(), data.start_time()])
@@ -85,12 +87,12 @@ impl PostgresClientAdapter {
             .await
     }
 
-    async fn update_statment(&self) -> Result<tokio_postgres::Statement, tokio_postgres::Error> {
+    async fn update_statement(&self) -> Result<tokio_postgres::Statement, tokio_postgres::Error> {
         self.client.prepare_typed("UPDATE \"MatchupInfos\" SET info = $1 WHERE id_matchup = $2 AND initial_date_matchup = $3;", &[tokio_postgres::types::Type::JSONB, tokio_postgres::types::Type::VARCHAR, tokio_postgres::types::Type::TIMESTAMPTZ]).await
     }
 
     async fn update(&self, data: &MatchupOverview) -> Result<u64, tokio_postgres::Error> {
-        let prepared = self.update_statment().await?;
+        let prepared = self.update_statement().await?;
         self.client
             .execute(
                 &prepared,
@@ -101,6 +103,31 @@ impl PostgresClientAdapter {
                 ],
             )
             .await
+    }
+
+    async fn select_by_date_range_statement(
+        &self,
+    ) -> Result<tokio_postgres::Statement, tokio_postgres::Error> {
+        self.client.prepare_typed("SELECT id_matchup, initial_date_matchup, end_date_matchup, info FROM \"MatchupInfos\" WHERE initial_date_matchup >= $1 AND end_date_matchup <= $2;", &[tokio_postgres::types::Type::TIMESTAMPTZ, tokio_postgres::types::Type::TIMESTAMPTZ]).await
+    }
+
+    pub async fn select_by_date_range(
+        &self,
+        initial_date: &chrono::DateTime<Utc>,
+        end_date: &chrono::DateTime<Utc>,
+    ) -> Result<Vec<MatchupOverviewPG>, tokio_postgres::Error> {
+        let prepared = self.select_by_date_range_statement().await?;
+        let rows = self.client.query(&prepared, &[initial_date, end_date]).await?;
+        let result: Vec<MatchupOverviewPG> = rows.iter().map(|value|{
+            let info: Json<MatchupOverview> = value.get(3);
+            MatchupOverviewPG{
+                matchup_id: value.get(0),
+                initial_date_matchup: value.get(1),
+                end_date_matchup: value.get(2),
+                info: info.0,
+            }
+        }).collect();
+        Ok(result)
     }
 }
 

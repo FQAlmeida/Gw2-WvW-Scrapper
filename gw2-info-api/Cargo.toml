@@ -3,8 +3,14 @@ name = "gw2-info-api"
 version = "0.1.0"
 edition = "2021"
 
+authors = ["FQA <otavioalmeida650+gw2infoapi@gmail.com>"]
+license = "MIT"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rocket = { git = "https://github.com/SergioBenitez/Rocket", rev = "162fafa0f1b5d9045bf342356671859f0f21c4cc" }
+rocket = { git = "https://github.com/SergioBenitez/Rocket", rev = "162fafa0f1b5d9045bf342356671859f0f21c4cc", features = ["json"]}
 chrono = {version = "0.4.23"}
+serde = {version = "1.0.152", features = ["derive"]}
+
+pg-db-adapter = {path = "../pg-db-adapter"}

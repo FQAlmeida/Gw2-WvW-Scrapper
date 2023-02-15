@@ -580,7 +580,9 @@ name = "gw2-info-api"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "pg-db-adapter",
  "rocket",
+ "serde",
 ]
 
 [[package]]
@@ -1139,6 +1141,7 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "gw2-api-models",
+ "serde",
  "tokio",
  "tokio-postgres",
 ]
@@ -1427,6 +1430,7 @@ dependencies = [
  "rocket_codegen",
  "rocket_http",
  "serde",
+ "serde_json",
  "state",
  "tempfile",
  "time 0.3.17",

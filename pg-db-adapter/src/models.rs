@@ -1,10 +1,12 @@
-// use chrono::{DateTime, Utc};
-// use gw2_api_models::models::matchup_overview::MatchupOverview;
+use chrono::{DateTime, Utc};
+use gw2_api_models::models::matchup_overview::MatchupOverview;
+use serde::{Serialize, Deserialize};
 
-// pub struct MatchupOverviewPG{
-//     matchup_id: String,
-//     initial_date_matchup: tokio_postgres::types::Date<DateTime<Utc>>,
-//     end_date_matchup: tokio_postgres::types::Date<DateTime<Utc>>,
-//     info: tokio_postgres::types::Json<MatchupOverview>
-// }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MatchupOverviewPG{
+    pub matchup_id: String,
+    pub initial_date_matchup: DateTime<Utc>,
+    pub end_date_matchup: DateTime<Utc>,
+    pub info: MatchupOverview,
+}
 
