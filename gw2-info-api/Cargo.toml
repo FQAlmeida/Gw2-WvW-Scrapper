@@ -12,5 +12,6 @@ license = "MIT"
 rocket = {git = "https://github.com/SergioBenitez/Rocket", branch = "master", features = ["json"]}
 chrono = {version = "0.4.23"}
 serde = {version = "1.0.152", features = ["derive"]}
+dotenv = {version = "0.15.0"}
 
 pg-db-adapter = {path = "../pg-db-adapter"}
