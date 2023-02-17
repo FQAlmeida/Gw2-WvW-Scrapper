@@ -10,9 +10,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
     dotenv::dotenv().ok();
     let args: Vec<String> = env::args().collect();
     dbg!(&args);
-    for (n,v) in env::vars_os() {
-        dbg!("{}: {}", n.into_string().unwrap(), v.into_string().unwrap());
-    }
     
     let scheduler = JobScheduler::new().await.unwrap();
 
