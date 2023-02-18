@@ -15,3 +15,4 @@ serde = {version = "1.0.152", features = ["derive"]}
 dotenv = {version = "0.15.0"}
 
 pg-db-adapter = {path = "../pg-db-adapter"}
+gw2-api-models= {path = "../gw2-api-models"}

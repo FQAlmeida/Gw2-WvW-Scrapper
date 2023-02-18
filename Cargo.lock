@@ -581,6 +581,7 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "dotenv",
+ "gw2-api-models",
  "pg-db-adapter",
  "rocket",
  "serde",

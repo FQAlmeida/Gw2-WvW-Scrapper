@@ -2,6 +2,7 @@ use chrono::NaiveDateTime;
 use chrono::ParseError;
 use chrono::TimeZone;
 use chrono::Utc;
+use gw2_api_models::models::matchup_overview::MatchupOverview;
 use pg_db_adapter::models::MatchupOverviewPG;
 use pg_db_adapter::PostgresAdapter;
 use rocket::State;
@@ -35,7 +36,7 @@ async fn index(
     _start_date: NaiveDateForm,
     _end_date: NaiveDateForm,
     server_state: &State<ServerState>
-) -> Result<Json<Vec<MatchupOverviewPG>>, Status> {
+) -> Result<Json<Vec<MatchupOverview>>, Status> {
     let adapter = server_state.adapter.clone();
     let get_conn = adapter.get_connection().await;
 
@@ -57,7 +58,7 @@ async fn index(
     let result = client.select_by_date_range(&start_date, &end_date).await;
 
     return match result {
-        Ok(data) => Ok(Json(data)),
+        Ok(data) => Ok(Json(data.iter().map(|m| m.info.clone()).collect())),
         Err(_) => Err(http::Status::InternalServerError),
     };
 }
