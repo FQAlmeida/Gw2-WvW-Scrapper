@@ -3,7 +3,6 @@ use chrono::ParseError;
 use chrono::TimeZone;
 use chrono::Utc;
 use gw2_api_models::models::matchup_overview::MatchupOverview;
-use pg_db_adapter::models::MatchupOverviewPG;
 use pg_db_adapter::PostgresAdapter;
 use rocket::State;
 use rocket::get;
