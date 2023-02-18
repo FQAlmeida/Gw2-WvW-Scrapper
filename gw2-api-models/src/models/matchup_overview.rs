@@ -98,7 +98,7 @@ mod my_date_format {
     use chrono::{DateTime, TimeZone, Utc};
     use serde::{self, Deserialize, Deserializer, Serializer};
 
-    const FORMAT: &'static str = "%Y-%m-%dT%H:%M:%SZ";
+    const FORMAT: &str = "%Y-%m-%dT%H:%M:%SZ";
 
     // The signature of a serialize_with function must follow the pattern:
     //

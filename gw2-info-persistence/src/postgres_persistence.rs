@@ -23,7 +23,7 @@ impl PostgresPersistence {
 
 #[async_trait]
 impl PersistenceSystem for PostgresPersistence {
-    async fn save(&self, obj: &Vec<MatchupOverview>) -> Result<(), Box<dyn Error>> {
+    async fn save<'life>(&self, obj: &'life [MatchupOverview]) -> Result<(), Box<dyn Error>> {
         let (client, conn) = self.adapter.get_connection().await?;
 
         tokio::spawn(async move {
@@ -32,7 +32,7 @@ impl PersistenceSystem for PostgresPersistence {
             }
         });
         for o in obj {
-            client.insert(&o).await?;
+            client.insert(o).await?;
         }
 
         Ok(())

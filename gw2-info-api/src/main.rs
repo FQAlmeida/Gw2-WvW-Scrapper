@@ -4,7 +4,6 @@ use chrono::TimeZone;
 use chrono::Utc;
 use gw2_api_models::models::matchup_overview::MatchupOverview;
 use pg_db_adapter::PostgresAdapter;
-use rocket::State;
 use rocket::get;
 use rocket::http;
 use rocket::http::Status;
@@ -12,6 +11,7 @@ use rocket::launch;
 use rocket::request::FromParam;
 use rocket::routes;
 use rocket::serde::json::Json;
+use rocket::State;
 use std::env;
 
 struct ServerState {
@@ -24,7 +24,7 @@ impl<'a> FromParam<'a> for NaiveDateForm {
     type Error = ParseError;
 
     fn from_param(param: &'a str) -> std::result::Result<Self, Self::Error> {
-        match NaiveDateTime::parse_from_str(&param, "%Y-%m-%d-%H-%M-%S") {
+        match NaiveDateTime::parse_from_str(param, "%Y-%m-%d-%H-%M-%S") {
             Ok(date) => Ok(NaiveDateForm(date)),
             Err(e) => Err(e),
         }
@@ -34,7 +34,7 @@ impl<'a> FromParam<'a> for NaiveDateForm {
 async fn index(
     _start_date: NaiveDateForm,
     _end_date: NaiveDateForm,
-    server_state: &State<ServerState>
+    server_state: &State<ServerState>,
 ) -> Result<Json<Vec<MatchupOverview>>, Status> {
     let adapter = server_state.adapter.clone();
     let get_conn = adapter.get_connection().await;
@@ -66,15 +66,9 @@ async fn index(
 fn rocket() -> _ {
     dotenv::dotenv().ok();
 
-    let host: &str = &env::var("PG_HOST")
-        .expect("PG_HOST must be set.")
-        .to_owned();
-    let user: &str = &env::var("PG_USER")
-        .expect("PG_USER must be set.")
-        .to_owned();
-    let password: &str = &env::var("PG_PASSWORD")
-        .expect("PG_PASSWORD must be set.")
-        .to_owned();
+    let host: &str = &env::var("PG_HOST").expect("PG_HOST must be set.");
+    let user: &str = &env::var("PG_USER").expect("PG_USER must be set.");
+    let password: &str = &env::var("PG_PASSWORD").expect("PG_PASSWORD must be set.");
 
     let adapter = PostgresAdapter::new(host, user, password);
 

@@ -24,7 +24,7 @@ impl Gw2ApiWrapper {
             .send()
             .await?;
         let data: Vec<String> = response.json().await?;
-        return Ok(data);
+        Ok(data)
     }
 
     pub async fn get_matchup_info(
@@ -35,7 +35,7 @@ impl Gw2ApiWrapper {
         uri.push_str(&ids.join(","));
         let response = self.client.get(uri).send().await?;
         let data: Vec<MatchupOverview> = response.json().await?;
-        return Ok(data);
+        Ok(data)
     }
 }
 

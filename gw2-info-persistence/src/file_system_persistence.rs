@@ -11,9 +11,9 @@ pub struct FileSystemPersistence {
 
 #[async_trait]
 impl PersistenceSystem for FileSystemPersistence {
-    async fn save(
+    async fn save<'life>(
         &self,
-        obj: &Vec<gw2_api_models::models::matchup_overview::MatchupOverview>,
+        obj: &'life [gw2_api_models::models::matchup_overview::MatchupOverview],
     ) -> Result<(), Box<dyn Error>> {
         for wvw_match in obj.iter() {
             let id = wvw_match.id();
@@ -48,17 +48,17 @@ impl FileSystemPersistence {
             // dbg!(std::fs::canonicalize(&pd)?);
         }
         // dbg!(&fp);
-        let mut fd = File::create(&fp)?;
+        let mut fd = File::create(fp)?;
         fd.write_all(content)?;
         Ok(())
     }
 
-    fn gen_filename(id: &String, start_time: &String) -> String {
+    fn gen_filename(id: &str, start_time: &str) -> String {
         let mut filename = String::from("data/match_");
         filename.push_str(id);
         filename.push('_');
         filename.push_str(start_time);
         filename.push_str(".json");
-        return filename;
+        filename
     }
 }
