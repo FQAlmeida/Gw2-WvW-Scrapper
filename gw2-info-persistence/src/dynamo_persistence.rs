@@ -3,7 +3,7 @@ use std::error::Error;
 use async_trait::async_trait;
 use db_adapter::{db_adapter::DbAdapter, dynamo_adapter::DynamoAdapter};
 use gw2_api_models::models::matchup_overview::MatchupOverview;
-use tokio::time::Instant;
+
 
 use crate::persistence_system_interface::PersistenceSystem;
 

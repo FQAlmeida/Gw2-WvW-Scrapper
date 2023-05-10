@@ -1,6 +1,5 @@
 use chrono::Utc;
 use gw2_api_models::models::matchup_overview::MatchupOverview;
-use oracle;
 
 #[derive(Debug, Clone)]
 pub struct OracleAdapterConfig {
@@ -67,8 +66,8 @@ impl OracleClientAdapter {
 
     async fn match_exists(&self, data: &MatchupOverview) -> Result<bool, oracle::Error> {
         let mut prepared = self.match_exists_statement().await?;
-        let id: &str = &data.id();
-        let initial_date_matchup: &chrono::DateTime<Utc> = &data.start_time();
+        let id: &str = data.id();
+        let initial_date_matchup: &chrono::DateTime<Utc> = data.start_time();
         let result = prepared.query_row(&[&id, initial_date_matchup])?;
         let exists: u64 = result.get(0)?;
         Ok(exists > 0)
@@ -91,11 +90,11 @@ impl OracleClientAdapter {
             return self.update(data).await;
         }
         let mut statement = self.insert_prepared_statement().await?;
-        let id: &str = &data.id();
-        let initial_date_matchup: &chrono::DateTime<Utc> = &data.start_time();
-        let end_date_matchup: &chrono::DateTime<Utc> = &data.end_time();
+        let id: &str = data.id();
+        let initial_date_matchup: &chrono::DateTime<Utc> = data.start_time();
+        let end_date_matchup: &chrono::DateTime<Utc> = data.end_time();
         let info: String = serde_json::to_string(data.skirmishes()).unwrap();
-        let info_str: &str = info.as_str().clone();
+        let info_str: &str = &(info);
         statement.execute(&[&id, initial_date_matchup, end_date_matchup, &info_str])
     }
 
@@ -116,10 +115,10 @@ impl OracleClientAdapter {
 
     async fn update(&self, data: &MatchupOverview) -> Result<(), oracle::Error> {
         let mut prepared = self.update_statement().await?;
-        let id: &str = &data.id();
-        let initial_date_matchup: &chrono::DateTime<Utc> = &data.start_time();
+        let id: &str = data.id();
+        let initial_date_matchup: &chrono::DateTime<Utc> = data.start_time();
         let info: String = serde_json::to_string(data.skirmishes()).unwrap();
-        let info_str: &str = info.as_str().clone();
+        let info_str: &str = &info;
         prepared.execute(&[&info_str, &id, initial_date_matchup])
     }
 
@@ -178,7 +177,6 @@ impl OracleClientAdapter {
 mod tests {
     use std::env;
 
-    use dotenv;
     use gw2_api_models::models::matchup_overview::mock;
 
     use crate::OracleAdapter;

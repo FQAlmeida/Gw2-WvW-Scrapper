@@ -60,9 +60,10 @@ impl DynamoClientAdapter {
 impl db_adapter::DbAdapter for DynamoClientAdapter {
     async fn insert(&self, data: &MatchupOverview) -> Result<(), Box<dyn Error>> {
         let matchup_key = format!("{} {}", data.id(), data.start_time());
-        let start_time = format!("{}", data.start_time().to_rfc3339());
-        let end_time = format!("{}", data.end_time().to_rfc3339());
-        let content = format!("{}", serde_json::to_string(data).unwrap());
+        let start_time = data.start_time().to_rfc3339();
+        let end_time = data.end_time().to_rfc3339();
+        let content =
+            serde_json::to_string(data).expect("Can serialize MatchupOverview data to string");
 
         let matchup_key_value = AttributeValue::S(matchup_key);
         let start_time_value = AttributeValue::S(start_time);
@@ -89,8 +90,8 @@ impl db_adapter::DbAdapter for DynamoClientAdapter {
         start_date: DateTime<Utc>,
         end_date: DateTime<Utc>,
     ) -> Result<Vec<MatchupOverview>, Box<dyn Error>> {
-        let start_time = format!("{}", start_date.to_rfc3339());
-        let end_time = format!("{}", end_date.to_rfc3339());
+        let start_time = start_date.to_rfc3339();
+        let end_time = end_date.to_rfc3339();
 
         let start_time_value = AttributeValue::S(start_time);
         let end_time_value = AttributeValue::S(end_time);
@@ -118,7 +119,7 @@ impl db_adapter::DbAdapter for DynamoClientAdapter {
                         .expect("Could not convert content value to String");
                     let matchup_data: MatchupOverview = serde_json::from_str(content)
                         .expect("Could not convert content String to Struct MatchupOverview");
-                    return matchup_data;
+                    matchup_data
                 })
                 .collect();
             return Ok(matchups);
