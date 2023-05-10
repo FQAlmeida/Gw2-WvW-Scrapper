@@ -13,5 +13,11 @@ tokio = { version = "1.28.0", features = ["full"] }
 dotenv = { version = "0.15.0" }
 serde_json = { version = "1.0.96" }
 async-trait = { version = "0.1.68" }
+mongodb = { version = "2.5.0", features = [
+    "bson-chrono-0_4",
+    "serde_bytes",
+    "bson-serde_with",
+] }
+futures = { version = "0.3" }
 
 gw2-api-models = { path = "../gw2-api-models" }

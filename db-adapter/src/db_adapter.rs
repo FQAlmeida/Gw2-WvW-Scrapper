@@ -8,7 +8,7 @@ pub trait DbAdapter {
     async fn insert(&self, obj: &MatchupOverview) -> Result<(), Box<dyn Error>>;
     async fn select_by_date_range(
         &self,
-        start_date: DateTime<Utc>,
-        end_date: DateTime<Utc>,
+        start_date: &DateTime<Utc>,
+        end_date: &DateTime<Utc>,
     ) -> Result<Vec<MatchupOverview>, Box<dyn Error>>;
 }

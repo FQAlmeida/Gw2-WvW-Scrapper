@@ -9,10 +9,13 @@ license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rocket = {git = "https://github.com/SergioBenitez/Rocket", branch = "master", features = ["json"]}
-chrono = {version = "0.4.23"}
-serde = {version = "1.0.152", features = ["derive"]}
-dotenv = {version = "0.15.0"}
+rocket = { git = "https://github.com/SergioBenitez/Rocket", branch = "master", features = [
+    "json",
+] }
+chrono = { version = "0.4.23" }
+serde = { version = "1.0.152", features = ["derive"] }
+dotenv = { version = "0.15.0" }
 
-pg-db-adapter = {path = "../pg-db-adapter"}
-gw2-api-models= {path = "../gw2-api-models"}
+# db-adapter = {path = "../db-adapter"}
+gw2-info-persistence = { path = "../gw2-info-persistence" }
+gw2-api-models = { path = "../gw2-api-models" }

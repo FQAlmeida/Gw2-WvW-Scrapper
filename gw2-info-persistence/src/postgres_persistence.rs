@@ -1,6 +1,7 @@
 use std::error::Error;
 
 use async_trait::async_trait;
+use chrono::{Utc, DateTime};
 use gw2_api_models::models::matchup_overview::MatchupOverview;
 use pg_db_adapter::PostgresAdapter;
 
@@ -36,5 +37,12 @@ impl PersistenceSystem for PostgresPersistence {
         }
 
         Ok(())
+    }
+    async fn select_by_date_range(
+        &self,
+        _start_date: &DateTime<Utc>,
+        _end_date: &DateTime<Utc>,
+    ) -> Result<Vec<MatchupOverview>, Box<dyn Error>> {
+        todo!();
     }
 }

@@ -1,6 +1,6 @@
 use gw2_api_wrapper::Gw2ApiWrapper;
 use gw2_info_persistence::{
-    dynamo_persistence::DynamoPersistence, persistence_system_interface::PersistenceSystem,
+    mongo_persistence::MongoPersistence, persistence_system_interface::PersistenceSystem,
 };
 use std::{env, error::Error};
 use tokio_cron_scheduler::{Job, JobScheduler};
@@ -17,23 +17,21 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // let basepath = args.get(1).unwrap_or(&default_basepath).clone();
     // let file_persistence = FileSystemPersistence::new(basepath);
 
-    // let aws_access_key_id: &str = &env::var("aws_access_key_id")
-    //     .expect("aws_access_key_id must be set.")
-    //     .to_owned();
-    // let aws_secret_access_key: &str = &env::var("aws_secret_access_key")
-    //     .expect("aws_secret_access_key must be set.")
-    //     .to_owned();
-    // let region: &str = &env::var("region").expect("region must be set.").to_owned();
+    let host: &str = &env::var("MONGO_HOST").expect("MONGO_HOST must be set.").to_owned();
+    let user: &str = &env::var("MONGO_USERNAME").expect("MONGO_USERNAME must be set.").to_owned();
+    let password: &str = &env::var("MONGO_PASSWORD")
+        .expect("MONGO_PASSWORD must be set.")
+        .to_owned();
 
     // let oracle_persistence = OraclePersistence::new(host, user, password);
-    let dynamo_persistence = DynamoPersistence::new().await;
+    let mongo_persistence = MongoPersistence::new(host, user, password).await;
 
-    let job = Job::new_async("0 1/2 * * * *", move |_, _| {
+    let job = Job::new_async("0 1/1 * * * *", move |_, _| {
         // let this_file_persistence = file_persistence.clone();
         // let this_pg_persistence = pg_persistence.clone();
         // let this_oracle_persistence = oracle_persistence.clone();
 
-        let this_dynamo_persistence = dynamo_persistence.clone();
+        let this_mongo_persistence = mongo_persistence.clone();
 
         Box::pin(async move {
             dbg!("Running Job");
@@ -45,7 +43,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             // dbg!(&info);
             // this_file_persistence.save(&info).await.unwrap();
             // this_pg_persistence.save(&info).await.unwrap();
-            this_dynamo_persistence.save(&info).await.unwrap();
+            this_mongo_persistence.save(&info).await.unwrap();
 
             dbg!("Saved");
         })

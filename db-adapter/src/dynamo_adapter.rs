@@ -87,8 +87,8 @@ impl db_adapter::DbAdapter for DynamoClientAdapter {
 
     async fn select_by_date_range(
         &self,
-        start_date: DateTime<Utc>,
-        end_date: DateTime<Utc>,
+        start_date: &DateTime<Utc>,
+        end_date: &DateTime<Utc>,
     ) -> Result<Vec<MatchupOverview>, Box<dyn Error>> {
         let start_time = start_date.to_rfc3339();
         let end_time = end_date.to_rfc3339();
@@ -96,34 +96,39 @@ impl db_adapter::DbAdapter for DynamoClientAdapter {
         let start_time_value = AttributeValue::S(start_time);
         let end_time_value = AttributeValue::S(end_time);
 
-        let result = self
-            .client
-            .query()
-            .table_name("gw2-wvw-scrapper")
-            .key_condition_expression("#start_date >= :date_1")
-            .expression_attribute_names("#start_date", "matchup_start_date")
+        let query = self.client.query();
+        let table = query.table_name("gw2-wvw-scrapper");
+        let filter = table
+            .filter_expression("matchup_start_date >= :date_1 AND matchup_end_date <= :date_2")
             .expression_attribute_values(":date_1", start_time_value)
-            .key_condition_expression("#end_date >= :date_2")
-            .expression_attribute_names("#end_date", "matchup_end_date")
-            .expression_attribute_values(":date_2", end_time_value)
-            .send()
-            .await?;
+            .expression_attribute_values(":date_2", end_time_value);
 
-        if let Some(items) = result.items {
-            let matchups: Vec<MatchupOverview> = items
-                .iter()
-                .map(|data| {
-                    let content_value = data.get("content").expect("Could not retrieve content");
-                    let content = content_value
-                        .as_s()
-                        .expect("Could not convert content value to String");
-                    let matchup_data: MatchupOverview = serde_json::from_str(content)
-                        .expect("Could not convert content String to Struct MatchupOverview");
-                    matchup_data
-                })
-                .collect();
-            return Ok(matchups);
+        let result = filter.send().await;
+        dbg!(&start_date);
+        match result {
+            Ok(data) => {
+                dbg!(data);
+            }
+            Err(err) => {
+                dbg!(err);
+            }
         }
+
+        // if let Some(items) = result?.items {
+        //     let matchups: Vec<MatchupOverview> = items
+        //         .iter()
+        //         .map(|data| {
+        //             let content_value = data.get("content").expect("Could not retrieve content");
+        //             let content = content_value
+        //                 .as_s()
+        //                 .expect("Could not convert content value to String");
+        //             let matchup_data: MatchupOverview = serde_json::from_str(content)
+        //                 .expect("Could not convert content String to Struct MatchupOverview");
+        //             matchup_data
+        //         })
+        //         .collect();
+        //     return Ok(matchups);
+        // }
         return Ok(vec![]);
     }
 }

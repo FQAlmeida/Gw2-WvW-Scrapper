@@ -1,6 +1,8 @@
 use std::{error::Error, fs::File, io::Write};
 
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
+use gw2_api_models::models::matchup_overview::MatchupOverview;
 
 use crate::persistence_system_interface::PersistenceSystem;
 
@@ -13,7 +15,7 @@ pub struct FileSystemPersistence {
 impl PersistenceSystem for FileSystemPersistence {
     async fn save<'life>(
         &self,
-        obj: &'life [gw2_api_models::models::matchup_overview::MatchupOverview],
+        obj: &'life [MatchupOverview],
     ) -> Result<(), Box<dyn Error>> {
         for wvw_match in obj.iter() {
             let id = wvw_match.id();
@@ -28,6 +30,13 @@ impl PersistenceSystem for FileSystemPersistence {
             Self::save_json(&fp, serde_json::to_vec_pretty(wvw_match).unwrap().as_ref())?;
         }
         Ok(())
+    }
+    async fn select_by_date_range(
+        &self,
+        _start_date: &DateTime<Utc>,
+        _end_date: &DateTime<Utc>,
+    ) -> Result<Vec<MatchupOverview>, Box<dyn Error>>{
+        todo!()
     }
 }
 

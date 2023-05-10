@@ -2,27 +2,26 @@ use std::error::Error;
 
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use db_adapter::{db_adapter::DbAdapter, dynamo_adapter::DynamoAdapter};
+use db_adapter::{db_adapter::DbAdapter, mongo_adapter::MongoAdapter};
 use gw2_api_models::models::matchup_overview::MatchupOverview;
-
 
 use crate::persistence_system_interface::PersistenceSystem;
 
 #[derive(Debug, Clone)]
-pub struct DynamoPersistence {
-    adapter: DynamoAdapter,
+pub struct MongoPersistence {
+    adapter: MongoAdapter,
 }
 
-impl DynamoPersistence {
-    pub async fn new() -> Self {
+impl MongoPersistence {
+    pub async fn new(host: &str, user: &str, password: &str) -> Self {
         Self {
-            adapter: DynamoAdapter::new().await,
+            adapter: MongoAdapter::new(host, user, password).await,
         }
     }
 }
 
 #[async_trait]
-impl PersistenceSystem for DynamoPersistence {
+impl PersistenceSystem for MongoPersistence {
     async fn save<'life>(&self, obj: &'life [MatchupOverview]) -> Result<(), Box<dyn Error>> {
         let client = self.adapter.get_connection().await?;
         for o in obj {
@@ -36,7 +35,7 @@ impl PersistenceSystem for DynamoPersistence {
         &self,
         start_date: &DateTime<Utc>,
         end_date: &DateTime<Utc>,
-    ) -> Result<Vec<MatchupOverview>, Box<dyn Error>>{
+    ) -> Result<Vec<MatchupOverview>, Box<dyn Error>> {
         let client = self.adapter.get_connection().await?;
         let result = client.select_by_date_range(start_date, end_date).await?;
 

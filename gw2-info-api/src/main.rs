@@ -1,9 +1,12 @@
+use std::env;
+
 use chrono::NaiveDateTime;
 use chrono::ParseError;
 use chrono::TimeZone;
 use chrono::Utc;
 use gw2_api_models::models::matchup_overview::MatchupOverview;
-use pg_db_adapter::PostgresAdapter;
+use gw2_info_persistence::mongo_persistence::MongoPersistence;
+use gw2_info_persistence::persistence_system_interface::PersistenceSystem;
 use rocket::get;
 use rocket::http;
 use rocket::http::Status;
@@ -12,10 +15,9 @@ use rocket::request::FromParam;
 use rocket::routes;
 use rocket::serde::json::Json;
 use rocket::State;
-use std::env;
 
 struct ServerState {
-    adapter: PostgresAdapter,
+    persistence: MongoPersistence,
 }
 
 pub struct NaiveDateForm(pub NaiveDateTime);
@@ -30,49 +32,43 @@ impl<'a> FromParam<'a> for NaiveDateForm {
         }
     }
 }
-#[get("/<_start_date>/<_end_date>")]
+#[get("/<start_date>/<end_date>")]
 async fn index(
-    _start_date: NaiveDateForm,
-    _end_date: NaiveDateForm,
+    start_date: NaiveDateForm,
+    end_date: NaiveDateForm,
     server_state: &State<ServerState>,
 ) -> Result<Json<Vec<MatchupOverview>>, Status> {
-    let adapter = server_state.adapter.clone();
-    let get_conn = adapter.get_connection().await;
+    let start_date = Utc.from_utc_datetime(&start_date.0);
+    let end_date = Utc.from_utc_datetime(&end_date.0);
 
-    let (client, conn) = match get_conn {
-        Ok((client, conn)) => (client, conn),
-        Err(_) => return Err(rocket::http::Status::InternalServerError),
-    };
+    let result_promise = server_state
+        .persistence
+        .select_by_date_range(&start_date, &end_date);
+    let result = result_promise.await;
 
-    // let (client, conn) = adapter.get_connection().await.unwrap();
-    rocket::tokio::spawn(async move {
-        if let Err(e) = conn.await {
-            eprintln!("connection error: {}", e);
-        }
-    });
-
-    let start_date = Utc.from_utc_datetime(&_start_date.0);
-    let end_date = Utc.from_utc_datetime(&_end_date.0);
-
-    let result = client.select_by_date_range(&start_date, &end_date).await;
-
-    return match result {
-        Ok(data) => Ok(Json(data.iter().map(|m| m.info.clone()).collect())),
+    match result {
+        Ok(data) => Ok(Json(data.to_vec())),
         Err(_) => Err(http::Status::InternalServerError),
-    };
+    }
 }
 
 #[launch]
-fn rocket() -> _ {
+async fn rocket() -> _ {
     dotenv::dotenv().ok();
 
-    let host: &str = &env::var("PG_HOST").expect("PG_HOST must be set.");
-    let user: &str = &env::var("PG_USER").expect("PG_USER must be set.");
-    let password: &str = &env::var("PG_PASSWORD").expect("PG_PASSWORD must be set.");
+    let host: &str = &env::var("MONGO_HOST")
+        .expect("MONGO_HOST must be set.")
+        .to_owned();
+    let user: &str = &env::var("MONGO_USERNAME")
+        .expect("MONGO_USERNAME must be set.")
+        .to_owned();
+    let password: &str = &env::var("MONGO_PASSWORD")
+        .expect("MONGO_PASSWORD must be set.")
+        .to_owned();
 
-    let adapter = PostgresAdapter::new(host, user, password);
+    let persistence = MongoPersistence::new(host, user, password).await;
 
     rocket::build()
-        .manage(ServerState { adapter })
+        .manage(ServerState { persistence })
         .mount("/", routes![index])
 }

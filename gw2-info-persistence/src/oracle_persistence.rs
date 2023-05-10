@@ -1,6 +1,7 @@
 use std::error::Error;
 
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use gw2_api_models::models::matchup_overview::MatchupOverview;
 use oracle_db_adapter::OracleAdapter;
 
@@ -29,5 +30,12 @@ impl PersistenceSystem for OraclePersistence {
         }
 
         Ok(())
+    }
+    async fn select_by_date_range(
+        &self,
+        _start_date: &DateTime<Utc>,
+        _end_date: &DateTime<Utc>,
+    ) -> Result<Vec<MatchupOverview>, Box<dyn Error>> {
+        todo!();
     }
 }
