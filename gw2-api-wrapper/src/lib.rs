@@ -60,10 +60,10 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn can_get_all_matches_info(){
+    async fn can_get_all_matches_info() {
         let api = Gw2ApiWrapper::create();
         let ids = api.get_matchup_ids().await.unwrap();
-        let qtd_matches =ids.len();
+        let qtd_matches = ids.len();
         let matchup_overview = api.get_matchup_info(ids).await.unwrap();
         assert_eq!(matchup_overview.len(), qtd_matches)
     }

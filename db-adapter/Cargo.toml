@@ -1,0 +1,17 @@
+[package]
+name = "db-adapter"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+chrono = { version = "0.4.24" }
+aws-config = { version = "0.55.2" }
+aws-sdk-dynamodb = { version = "0.27.0" }
+tokio = { version = "1.28.0", features = ["full"] }
+dotenv = { version = "0.15.0" }
+serde_json = { version = "1.0.96" }
+async-trait = { version = "0.1.68" }
+
+gw2-api-models = { path = "../gw2-api-models" }

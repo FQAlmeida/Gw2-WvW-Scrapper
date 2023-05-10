@@ -1,4 +1,4 @@
-use std::{fs::File, io::Write, error::Error};
+use std::{error::Error, fs::File, io::Write};
 
 use async_trait::async_trait;
 

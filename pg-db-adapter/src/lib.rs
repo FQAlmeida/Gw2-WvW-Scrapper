@@ -1,7 +1,7 @@
 use chrono::Utc;
 use gw2_api_models::models::matchup_overview::MatchupOverview;
 use models::MatchupOverviewPG;
-use tokio_postgres::{tls::NoTlsStream, Config, NoTls, Socket, types::Json};
+use tokio_postgres::{tls::NoTlsStream, types::Json, Config, NoTls, Socket};
 
 pub mod models;
 
@@ -117,16 +117,22 @@ impl PostgresClientAdapter {
         end_date: &chrono::DateTime<Utc>,
     ) -> Result<Vec<MatchupOverviewPG>, tokio_postgres::Error> {
         let prepared = self.select_by_date_range_statement().await?;
-        let rows = self.client.query(&prepared, &[initial_date, end_date]).await?;
-        let result: Vec<MatchupOverviewPG> = rows.iter().map(|value|{
-            let info: Json<MatchupOverview> = value.get(3);
-            MatchupOverviewPG{
-                matchup_id: value.get(0),
-                initial_date_matchup: value.get(1),
-                end_date_matchup: value.get(2),
-                info: info.0,
-            }
-        }).collect();
+        let rows = self
+            .client
+            .query(&prepared, &[initial_date, end_date])
+            .await?;
+        let result: Vec<MatchupOverviewPG> = rows
+            .iter()
+            .map(|value| {
+                let info: Json<MatchupOverview> = value.get(3);
+                MatchupOverviewPG {
+                    matchup_id: value.get(0),
+                    initial_date_matchup: value.get(1),
+                    end_date_matchup: value.get(2),
+                    info: info.0,
+                }
+            })
+            .collect();
         Ok(result)
     }
 }

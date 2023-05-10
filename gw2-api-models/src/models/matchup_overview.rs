@@ -131,3 +131,49 @@ mod my_date_format {
             .map_err(serde::de::Error::custom)
     }
 }
+
+pub mod mock {
+    use chrono::Utc;
+
+    use super::{KillScore, MatchupOverview, Score, Team, World};
+
+    pub fn get_naive_mock() -> MatchupOverview {
+        MatchupOverview {
+            id: String::from("1-1"),
+            start_time: Utc::now(),
+            end_time: Utc::now(),
+            scores: Score {
+                red: 0,
+                blue: 0,
+                green: 0,
+            },
+            worlds: World {
+                red: 0,
+                blue: 0,
+                green: 0,
+            },
+            all_worlds: Team {
+                red: vec![0],
+                blue: vec![0],
+                green: vec![0],
+            },
+            deaths: KillScore {
+                red: 0,
+                blue: 0,
+                green: 0,
+            },
+            kills: KillScore {
+                red: 0,
+                blue: 0,
+                green: 0,
+            },
+            victory_points: Score {
+                red: 0,
+                blue: 0,
+                green: 0,
+            },
+            skirmishes: vec![],
+            maps: vec![],
+        }
+    }
+}
