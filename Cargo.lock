@@ -751,8 +751,10 @@ dependencies = [
  "futures",
  "gw2-api-models",
  "mongodb",
+ "serde",
  "serde_json",
  "tokio",
+ "tokio-postgres",
 ]
 
 [[package]]
@@ -1123,8 +1125,6 @@ dependencies = [
  "chrono",
  "db-adapter",
  "gw2-api-models",
- "oracle-db-adapter",
- "pg-db-adapter",
  "serde",
  "serde_json",
  "tokio",
@@ -1764,44 +1764,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oracle"
-version = "0.5.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cfe80334af1fbaea016fbef0af77f5fa32452362e29a039389b8c93737585003"
-dependencies = [
- "cc",
- "chrono",
- "lazy_static",
- "oracle_procmacro",
- "paste",
-]
-
-[[package]]
-name = "oracle-db-adapter"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "dotenv",
- "gw2-api-models",
- "oracle",
- "serde",
- "serde_json",
- "tokio",
-]
-
-[[package]]
-name = "oracle_procmacro"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ad247f3421d57de56a0d0408d3249d4b1048a522be2013656d92f022c3d8af27"
-dependencies = [
- "darling 0.13.4",
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
 name = "outref"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1835,12 +1797,6 @@ dependencies = [
  "smallvec",
  "windows-sys 0.45.0",
 ]
-
-[[package]]
-name = "paste"
-version = "1.0.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f746c4065a8fa3fe23974dd82f15431cc8d40779821001404d10d2e79ca7d79"
 
 [[package]]
 name = "pbkdf2"
@@ -1879,17 +1835,6 @@ name = "percent-encoding"
 version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "478c572c3d73181ff3c2539045f6eb99e5491218eae919370993b890cdbdd98e"
-
-[[package]]
-name = "pg-db-adapter"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "gw2-api-models",
- "serde",
- "tokio",
- "tokio-postgres",
-]
 
 [[package]]
 name = "phf"
@@ -2637,9 +2582,9 @@ dependencies = [
 
 [[package]]
 name = "socket2"
-version = "0.5.2"
+version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6d283f86695ae989d1e18440a943880967156325ba025f05049946bff47bcc2b"
+checksum = "2538b18701741680e0322a2302176d3253a35388e2e62f172f64f4f16605f877"
 dependencies = [
  "libc",
  "windows-sys 0.48.0",
@@ -2910,7 +2855,7 @@ dependencies = [
  "pin-project-lite",
  "postgres-protocol",
  "postgres-types",
- "socket2 0.5.2",
+ "socket2 0.5.3",
  "tokio",
  "tokio-util",
 ]

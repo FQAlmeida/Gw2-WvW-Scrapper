@@ -1,6 +1,10 @@
+use std::error::Error;
+
+use crate::{db_adapter::DbAdapter, postgres_adapter::models::MatchupOverviewPG};
+
+use async_trait::async_trait;
 use chrono::Utc;
 use gw2_api_models::models::matchup_overview::MatchupOverview;
-use models::MatchupOverviewPG;
 use tokio_postgres::{tls::NoTlsStream, types::Json, Config, NoTls, Socket};
 
 pub mod models;
@@ -28,7 +32,7 @@ impl PostgresAdapter {
             PostgresClientAdapter,
             tokio_postgres::Connection<Socket, NoTlsStream>,
         ),
-        tokio_postgres::Error,
+        Box<dyn Error>,
     > {
         let (client, conn) = self.config.connect(NoTls).await?;
         Ok((PostgresClientAdapter { client }, conn))
@@ -44,13 +48,24 @@ impl PostgresClientAdapter {
         Self { client }
     }
 
-    async fn match_exists_statement(
-        &self,
-    ) -> Result<tokio_postgres::Statement, tokio_postgres::Error> {
-        self.client.prepare_typed("SELECT EXISTS(SELECT 1 FROM \"MatchupInfos\" WHERE \"MatchupInfos\".id_matchup = $1 AND \"MatchupInfos\".initial_date_matchup = $2);", &[tokio_postgres::types::Type::VARCHAR, tokio_postgres::types::Type::TIMESTAMPTZ]).await
+    async fn match_exists_statement(&self) -> Result<tokio_postgres::Statement, Box<dyn Error>> {
+        self.client
+            .prepare_typed(
+                "SELECT EXISTS(
+                        SELECT 1 
+                        FROM \"MatchupInfos\" 
+                        WHERE \"MatchupInfos\".id_matchup = $1 
+                        AND \"MatchupInfos\".initial_date_matchup = $2);",
+                &[
+                    tokio_postgres::types::Type::VARCHAR,
+                    tokio_postgres::types::Type::TIMESTAMPTZ,
+                ],
+            )
+            .await
+            .map_err(|err| Err(err.source().unwrap()).unwrap())
     }
 
-    async fn match_exists(&self, data: &MatchupOverview) -> Result<bool, tokio_postgres::Error> {
+    async fn match_exists(&self, data: &MatchupOverview) -> Result<bool, Box<dyn Error>> {
         let prepared = self.match_exists_statement().await?;
         let result = self
             .client
@@ -60,16 +75,46 @@ impl PostgresClientAdapter {
         Ok(exists)
     }
 
-    async fn insert_prepared_statement(
-        &self,
-    ) -> Result<tokio_postgres::Statement, tokio_postgres::Error> {
+    async fn insert_prepared_statement(&self) -> Result<tokio_postgres::Statement, Box<dyn Error>> {
         self.client.prepare_typed(
                 "INSERT INTO \"MatchupInfos\" (id_matchup, initial_date_matchup, end_date_matchup, info) VALUES ($1, $2, $3, $4);", 
                 &[tokio_postgres::types::Type::VARCHAR, tokio_postgres::types::Type::TIMESTAMPTZ, tokio_postgres::types::Type::TIMESTAMPTZ, tokio_postgres::types::Type::JSONB]
             ).await
+            .map_err(|err| Err(err.source().unwrap()).unwrap())
     }
 
-    pub async fn insert(&self, data: &MatchupOverview) -> Result<u64, tokio_postgres::Error> {
+    async fn update_statement(&self) -> Result<tokio_postgres::Statement, Box<dyn Error>> {
+        self.client.prepare_typed("UPDATE \"MatchupInfos\" SET info = $1 WHERE id_matchup = $2 AND initial_date_matchup = $3;", &[tokio_postgres::types::Type::JSONB, tokio_postgres::types::Type::VARCHAR, tokio_postgres::types::Type::TIMESTAMPTZ]).await
+        .map_err(|err| Err(err.source().unwrap()).unwrap())
+    }
+
+    async fn update(&self, data: &MatchupOverview) -> Result<(), Box<dyn Error>> {
+        let prepared = self.update_statement().await?;
+        self.client
+            .execute(
+                &prepared,
+                &[
+                    &tokio_postgres::types::Json::<MatchupOverview>(data.clone()),
+                    data.id(),
+                    data.start_time(),
+                ],
+            )
+            .await
+            .map(|_| ())
+            .map_err(|err| Err(err.source().unwrap()).unwrap())
+    }
+
+    async fn select_by_date_range_statement(
+        &self,
+    ) -> Result<tokio_postgres::Statement, Box<dyn Error>> {
+        self.client.prepare_typed("SELECT id_matchup, initial_date_matchup, end_date_matchup, info FROM \"MatchupInfos\" WHERE initial_date_matchup >= $1 AND end_date_matchup <= $2;", &[tokio_postgres::types::Type::TIMESTAMPTZ, tokio_postgres::types::Type::TIMESTAMPTZ]).await
+        .map_err(|err| Err(err.source().unwrap()).unwrap())
+    }
+}
+
+#[async_trait]
+impl DbAdapter for PostgresClientAdapter {
+    async fn insert(&self, data: &MatchupOverview) -> Result<(), Box<dyn Error>> {
         if self.match_exists(data).await? {
             return self.update(data).await;
         }
@@ -85,43 +130,20 @@ impl PostgresClientAdapter {
                 ],
             )
             .await
+            .map(|_| ())
+            .map_err(|err| Err(err.source().unwrap()).unwrap())
     }
-
-    async fn update_statement(&self) -> Result<tokio_postgres::Statement, tokio_postgres::Error> {
-        self.client.prepare_typed("UPDATE \"MatchupInfos\" SET info = $1 WHERE id_matchup = $2 AND initial_date_matchup = $3;", &[tokio_postgres::types::Type::JSONB, tokio_postgres::types::Type::VARCHAR, tokio_postgres::types::Type::TIMESTAMPTZ]).await
-    }
-
-    async fn update(&self, data: &MatchupOverview) -> Result<u64, tokio_postgres::Error> {
-        let prepared = self.update_statement().await?;
-        self.client
-            .execute(
-                &prepared,
-                &[
-                    &tokio_postgres::types::Json::<MatchupOverview>(data.clone()),
-                    data.id(),
-                    data.start_time(),
-                ],
-            )
-            .await
-    }
-
-    async fn select_by_date_range_statement(
-        &self,
-    ) -> Result<tokio_postgres::Statement, tokio_postgres::Error> {
-        self.client.prepare_typed("SELECT id_matchup, initial_date_matchup, end_date_matchup, info FROM \"MatchupInfos\" WHERE initial_date_matchup >= $1 AND end_date_matchup <= $2;", &[tokio_postgres::types::Type::TIMESTAMPTZ, tokio_postgres::types::Type::TIMESTAMPTZ]).await
-    }
-
-    pub async fn select_by_date_range(
+    async fn select_by_date_range(
         &self,
         initial_date: &chrono::DateTime<Utc>,
         end_date: &chrono::DateTime<Utc>,
-    ) -> Result<Vec<MatchupOverviewPG>, tokio_postgres::Error> {
+    ) -> Result<Vec<MatchupOverview>, Box<dyn Error>> {
         let prepared = self.select_by_date_range_statement().await?;
         let rows = self
             .client
             .query(&prepared, &[initial_date, end_date])
             .await?;
-        let result: Vec<MatchupOverviewPG> = rows
+        let result: Vec<MatchupOverview> = rows
             .iter()
             .map(|value| {
                 let info: Json<MatchupOverview> = value.get(3);
@@ -131,6 +153,7 @@ impl PostgresClientAdapter {
                     end_date_matchup: value.get(2),
                     info: info.0,
                 }
+                .info
             })
             .collect();
         Ok(result)
@@ -139,10 +162,12 @@ impl PostgresClientAdapter {
 
 #[cfg(test)]
 mod tests {
-    use crate::PostgresAdapter;
+    use std::error::Error;
+
+    use crate::postgres_adapter::PostgresAdapter;
 
     #[tokio::test]
-    async fn can_connect() -> Result<(), tokio_postgres::Error> {
+    async fn can_connect() -> Result<(), Box<dyn Error>> {
         let adapter = PostgresAdapter::new("192.168.0.11", "postgres", "<passwd_here>");
         let (_, conn) = adapter.get_connection().await?;
 

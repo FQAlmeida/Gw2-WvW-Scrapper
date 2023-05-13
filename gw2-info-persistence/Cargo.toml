@@ -14,6 +14,4 @@ tokio = { version = "1.25.0" }
 chrono = { version = "0.4.24" }
 
 gw2-api-models = { path = "../gw2-api-models" }
-pg-db-adapter = { path = "../pg-db-adapter" }
-oracle-db-adapter = { path = "../oracle-db-adapter" }
 db-adapter = { path = "../db-adapter" }
