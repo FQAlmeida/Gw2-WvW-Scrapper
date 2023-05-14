@@ -1,16 +1,18 @@
-use std::error::Error;
-
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use futures::TryStreamExt;
 use gw2_api_models::models::matchup_overview::MatchupOverview;
 use mongodb::{
-    bson,
+    bson::{self, oid::ObjectId},
     options::{ClientOptions, FindOptions, ServerApi, ServerApiVersion, UpdateOptions},
     Client,
 };
+use std::error::Error;
 
 use crate::db_adapter;
+
+use self::models::MatchupOverviewMongo;
+pub mod models;
 
 #[derive(Debug, Clone)]
 pub struct MongoAdapterConfig {
@@ -62,21 +64,69 @@ impl MongoClientAdapter {
     }
 }
 
+impl MongoClientAdapter {
+    async fn check_exists(
+        &self,
+        data: &MatchupOverview,
+    ) -> Result<Option<ObjectId>, Box<dyn Error>> {
+        let filter = bson::doc! {
+            "id": data.id(),
+            "initial_date_matchup": bson::DateTime::from_chrono(data.start_time().clone())
+        };
+        let result = self
+            .client
+            .database("gw2-wvw-scrapper")
+            .collection::<MatchupOverviewMongo>("gw2-wvw-scrapper")
+            .find_one(filter, None)
+            // .find(bson::doc! {}, None)
+            .await?;
+        match result {
+            Some(matchup) => Ok(Some(matchup.inner_id)),
+            None => Ok(None),
+        }
+    }
+
+    async fn update(&self, data: &MatchupOverview, id: ObjectId) -> Result<(), Box<dyn Error>> {
+        self.client
+            .database("gw2-wvw-scrapper")
+            .collection::<MatchupOverviewMongo>("gw2-wvw-scrapper")
+            .update_one(
+                bson::doc! {
+                  "_id": id,
+                },
+                bson::doc! {
+                    "$set": bson::doc!{
+                        "info": bson::to_bson(data).expect("Could not convert data to bson")
+                    }
+                },
+                UpdateOptions::builder().upsert(true).build(),
+            )
+            .await?;
+        Ok(())
+    }
+}
+
 #[async_trait]
 impl db_adapter::DbAdapter for MongoClientAdapter {
     async fn insert(&self, data: &MatchupOverview) -> Result<(), Box<dyn Error>> {
+        let existent_id = self.check_exists(data).await?;
+        if let Some(id) = existent_id {
+            dbg!(format!("Found {}", &id));
+            return self.update(data, id).await;
+        }
+        dbg!(format!("Did not found, inserting"));
         self.client
             .database("gw2-wvw-scrapper")
-            .collection::<MatchupOverview>("gw2-wvw-scrapper")
-            .update_one(
-                bson::doc! { // TODO (Otavio): bug, insert mult times same doc, comp is wrong
-                  "id": data.id(),
-                  "start_time" : format!("ISO_DATE(\"{}\")", data.start_time())
+            .collection::<MatchupOverviewMongo>("gw2-wvw-scrapper")
+            .insert_one(
+                MatchupOverviewMongo {
+                    inner_id: ObjectId::new(),
+                    id: data.id().clone(),
+                    initial_date_matchup: bson::DateTime::from_chrono(data.start_time().clone()),
+                    end_date_matchup: bson::DateTime::from_chrono(data.end_time().clone()),
+                    info: data.clone(),
                 },
-                bson::doc! {
-                    "$set": bson::to_bson(data).expect("Could not convert data to bson")
-                },
-                UpdateOptions::builder().upsert(true).build(),
+                None,
             )
             .await?;
         Ok(())
@@ -90,30 +140,28 @@ impl db_adapter::DbAdapter for MongoClientAdapter {
         dbg!(&start_date);
         dbg!(&end_date);
         let filter = bson::doc! {
-            "start_time": {// TODO (Otavio): bug, gte start date not returning data
-                "$gte": format!("ISO_DATE(\"{}\")", start_date)
+            "initial_date_matchup": {// TODO (Otavio): bug, gte start date not returning data
+                "$gte": bson::DateTime::from_chrono(start_date.clone())
             },
-            "end_time": {
-                "$lte": format!("ISO_DATE(\"{}\")", end_date)
+            "end_date_matchup": {
+                "$lte": bson::DateTime::from_chrono(end_date.clone())
             }
         };
         let find_options = FindOptions::builder()
-            .sort(bson::doc! { "id": 1, "start_time": 1, "_id": 1 })
+            .sort(bson::doc! { "id": 1, "initial_date_matchup": 1, "_id": 1 })
             .build();
         let mut cursor = self
             .client
             .database("gw2-wvw-scrapper")
-            .collection::<MatchupOverview>("gw2-wvw-scrapper")
+            .collection::<MatchupOverviewMongo>("gw2-wvw-scrapper")
             .find(filter, find_options)
             // .find(bson::doc! {}, None)
-            .await
-            .unwrap();
+            .await?;
 
         let mut matchups: Vec<MatchupOverview> = vec![];
         // Iterate over the results of the cursor.
-        while let Some(book) = cursor.try_next().await? {
-            println!("title: {}", book.id());
-            matchups.push(book);
+        while let Some(matchup) = cursor.try_next().await? {
+            matchups.push(matchup.info);
         }
         return Ok(matchups);
     }
