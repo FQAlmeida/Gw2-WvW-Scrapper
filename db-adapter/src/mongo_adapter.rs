@@ -140,7 +140,7 @@ impl db_adapter::DbAdapter for MongoClientAdapter {
         dbg!(&start_date);
         dbg!(&end_date);
         let filter = bson::doc! {
-            "initial_date_matchup": {// TODO (Otavio): bug, gte start date not returning data
+            "initial_date_matchup": {
                 "$gte": bson::DateTime::from_chrono(start_date.clone())
             },
             "end_date_matchup": {
