@@ -71,7 +71,7 @@ impl MongoClientAdapter {
     ) -> Result<Option<ObjectId>, Box<dyn Error>> {
         let filter = bson::doc! {
             "id": data.id(),
-            "initial_date_matchup": bson::DateTime::from_chrono(data.start_time().clone())
+            "initial_date_matchup": bson::DateTime::from_chrono(*data.start_time())
         };
         let result = self
             .client
@@ -122,8 +122,8 @@ impl db_adapter::DbAdapter for MongoClientAdapter {
                 MatchupOverviewMongo {
                     inner_id: ObjectId::new(),
                     id: data.id().clone(),
-                    initial_date_matchup: bson::DateTime::from_chrono(data.start_time().clone()),
-                    end_date_matchup: bson::DateTime::from_chrono(data.end_time().clone()),
+                    initial_date_matchup: bson::DateTime::from_chrono(*data.start_time()),
+                    end_date_matchup: bson::DateTime::from_chrono(*data.end_time()),
                     info: data.clone(),
                 },
                 None,
@@ -141,10 +141,10 @@ impl db_adapter::DbAdapter for MongoClientAdapter {
         dbg!(&end_date);
         let filter = bson::doc! {
             "initial_date_matchup": {
-                "$gte": bson::DateTime::from_chrono(start_date.clone())
+                "$gte": bson::DateTime::from_chrono(*start_date)
             },
             "end_date_matchup": {
-                "$lte": bson::DateTime::from_chrono(end_date.clone())
+                "$lte": bson::DateTime::from_chrono(*end_date)
             }
         };
         let find_options = FindOptions::builder()
