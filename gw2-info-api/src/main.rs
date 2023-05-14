@@ -1,20 +1,20 @@
 use std::env;
 
-use chrono::NaiveDateTime;
-use chrono::ParseError;
-use chrono::TimeZone;
-use chrono::Utc;
+use chrono::{NaiveDateTime, ParseError, TimeZone, Utc};
 use gw2_api_models::models::matchup_overview::MatchupOverview;
-use gw2_info_persistence::mongo_persistence::MongoPersistence;
-use gw2_info_persistence::persistence_system_interface::PersistenceSystem;
-use rocket::get;
-use rocket::http;
-use rocket::http::Status;
-use rocket::launch;
-use rocket::request::FromParam;
-use rocket::routes;
-use rocket::serde::json::Json;
-use rocket::State;
+use gw2_info_persistence::{
+    mongo_persistence::MongoPersistence, persistence_system_interface::PersistenceSystem,
+};
+use rocket::{
+    get,
+    http::{self, Status},
+    launch,
+    request::FromParam,
+    routes,
+    serde::json::Json,
+    State,
+};
+use rocket_okapi::openapi::{self};
 
 struct ServerState {
     persistence: MongoPersistence,
@@ -32,6 +32,8 @@ impl<'a> FromParam<'a> for NaiveDateForm {
         }
     }
 }
+
+#[openapi(tag = "WvWMatchups")]
 #[get("/<start_date>/<end_date>")]
 async fn index(
     start_date: NaiveDateForm,
@@ -70,5 +72,12 @@ async fn rocket() -> _ {
 
     rocket::build()
         .manage(ServerState { persistence })
-        .mount("/", routes![index])
+        .mount("/", openapi_get_routes![index])
+        .mount(
+            "/swagger-ui/",
+            make_swagger_ui(&SwaggerUIConfig {
+                url: "../openapi.json".to_owned(),
+                ..Default::default()
+            }),
+        )
 }
