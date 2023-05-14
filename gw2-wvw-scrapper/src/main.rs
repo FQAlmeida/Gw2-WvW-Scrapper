@@ -17,16 +17,24 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // let basepath = args.get(1).unwrap_or(&default_basepath).clone();
     // let file_persistence = FileSystemPersistence::new(basepath);
 
-    let host: &str = &env::var("MONGO_HOST").expect("MONGO_HOST must be set.").to_owned();
-    let user: &str = &env::var("MONGO_USERNAME").expect("MONGO_USERNAME must be set.").to_owned();
+    let host: &str = &env::var("MONGO_HOST")
+        .expect("MONGO_HOST must be set.")
+        .to_owned();
+    let user: &str = &env::var("MONGO_USERNAME")
+        .expect("MONGO_USERNAME must be set.")
+        .to_owned();
     let password: &str = &env::var("MONGO_PASSWORD")
         .expect("MONGO_PASSWORD must be set.")
+        .to_owned();
+
+    let cron_schedule: &str = &env::var("CRON_SCHEDULE")
+        .unwrap_or(String::from("0 1/1 * * * *"))
         .to_owned();
 
     // let oracle_persistence = OraclePersistence::new(host, user, password);
     let mongo_persistence = MongoPersistence::new(host, user, password).await;
 
-    let job = Job::new_async("0 1/1 * * * *", move |_, _| {
+    let job = Job::new_async(cron_schedule, move |_, _| {
         // let this_file_persistence = file_persistence.clone();
         // let this_pg_persistence = pg_persistence.clone();
         // let this_oracle_persistence = oracle_persistence.clone();
