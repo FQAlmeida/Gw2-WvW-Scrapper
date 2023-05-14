@@ -5,16 +5,8 @@ use gw2_api_models::models::matchup_overview::MatchupOverview;
 use gw2_info_persistence::{
     mongo_persistence::MongoPersistence, persistence_system_interface::PersistenceSystem,
 };
-use rocket::{
-    get,
-    http::{self, Status},
-    launch,
-    request::FromParam,
-    routes,
-    serde::json::Json,
-    State,
-};
-use rocket_okapi::openapi::{self};
+use rocket::{get, http::Status, launch, request::FromParam, routes, serde::json::Json, State};
+// use rocket_okapi::{openapi, openapi_get_routes};
 
 struct ServerState {
     persistence: MongoPersistence,
@@ -33,7 +25,6 @@ impl<'a> FromParam<'a> for NaiveDateForm {
     }
 }
 
-#[openapi(tag = "WvWMatchups")]
 #[get("/<start_date>/<end_date>")]
 async fn index(
     start_date: NaiveDateForm,
@@ -50,7 +41,7 @@ async fn index(
 
     match result {
         Ok(data) => Ok(Json(data.to_vec())),
-        Err(_) => Err(http::Status::InternalServerError),
+        Err(_) => Err(Status::InternalServerError),
     }
 }
 
@@ -70,14 +61,9 @@ async fn rocket() -> _ {
 
     let persistence = MongoPersistence::new(host, user, password).await;
 
+    let routes = routes![index];
+
     rocket::build()
         .manage(ServerState { persistence })
-        .mount("/", openapi_get_routes![index])
-        .mount(
-            "/swagger-ui/",
-            make_swagger_ui(&SwaggerUIConfig {
-                url: "../openapi.json".to_owned(),
-                ..Default::default()
-            }),
-        )
+        .mount("/", routes)
 }

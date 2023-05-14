@@ -15,7 +15,10 @@ rocket = { git = "https://github.com/SergioBenitez/Rocket", branch = "master", f
 chrono = { version = "0.4.23" }
 serde = { version = "1.0.152", features = ["derive"] }
 dotenv = { version = "0.15.0" }
-rocket_okapi = { version = "0.5.1" }
+rocket_okapi = { git = "https://github.com/GREsau/okapi", branch = "master", features = [
+    "swagger",
+    "rapidoc",
+] }
 
 # db-adapter = {path = "../db-adapter"}
 gw2-info-persistence = { path = "../gw2-info-persistence" }
