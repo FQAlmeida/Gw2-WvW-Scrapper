@@ -9,7 +9,6 @@ use tokio_cron_scheduler::{Job, JobScheduler};
 async fn main() -> Result<(), Box<dyn Error>> {
     dotenv::dotenv().ok();
     let args: Vec<String> = env::args().collect();
-    dbg!(&args);
 
     let scheduler = JobScheduler::new().await.unwrap();
 
@@ -30,6 +29,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let cron_schedule: &str = &env::var("CRON_SCHEDULE")
         .unwrap_or(String::from("0 1/1 * * * *"))
         .to_owned();
+
+    dbg!(&cron_schedule);
 
     // let oracle_persistence = OraclePersistence::new(host, user, password);
     let mongo_persistence = MongoPersistence::new(host, user, password).await;
