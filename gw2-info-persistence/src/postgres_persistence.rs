@@ -1,8 +1,8 @@
 use std::error::Error;
 
 use async_trait::async_trait;
-use chrono::{Utc, DateTime};
-use db_adapter::{postgres_adapter::PostgresAdapter, db_adapter::DbAdapter};
+use chrono::{DateTime, Utc};
+use db_adapter::{db_adapter::DbAdapter, postgres_adapter::PostgresAdapter};
 use gw2_api_models::models::matchup_overview::MatchupOverview;
 
 use tokio;

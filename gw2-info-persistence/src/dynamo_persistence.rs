@@ -5,7 +5,6 @@ use chrono::{DateTime, Utc};
 use db_adapter::{db_adapter::DbAdapter, dynamo_adapter::DynamoAdapter};
 use gw2_api_models::models::matchup_overview::MatchupOverview;
 
-
 use crate::persistence_system_interface::PersistenceSystem;
 
 #[derive(Debug, Clone)]
@@ -36,7 +35,7 @@ impl PersistenceSystem for DynamoPersistence {
         &self,
         start_date: &DateTime<Utc>,
         end_date: &DateTime<Utc>,
-    ) -> Result<Vec<MatchupOverview>, Box<dyn Error>>{
+    ) -> Result<Vec<MatchupOverview>, Box<dyn Error>> {
         let client = self.adapter.get_connection().await?;
         let result = client.select_by_date_range(start_date, end_date).await?;
 

@@ -13,10 +13,7 @@ pub struct FileSystemPersistence {
 
 #[async_trait]
 impl PersistenceSystem for FileSystemPersistence {
-    async fn save<'life>(
-        &self,
-        obj: &'life [MatchupOverview],
-    ) -> Result<(), Box<dyn Error>> {
+    async fn save<'life>(&self, obj: &'life [MatchupOverview]) -> Result<(), Box<dyn Error>> {
         for wvw_match in obj.iter() {
             let id = wvw_match.id();
             let start_time = wvw_match.start_time();
@@ -35,7 +32,7 @@ impl PersistenceSystem for FileSystemPersistence {
         &self,
         _start_date: &DateTime<Utc>,
         _end_date: &DateTime<Utc>,
-    ) -> Result<Vec<MatchupOverview>, Box<dyn Error>>{
+    ) -> Result<Vec<MatchupOverview>, Box<dyn Error>> {
         todo!()
     }
 }

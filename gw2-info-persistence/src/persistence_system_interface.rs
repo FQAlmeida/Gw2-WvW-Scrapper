@@ -13,4 +13,3 @@ pub trait PersistenceSystem {
         end_date: &DateTime<Utc>,
     ) -> Result<Vec<MatchupOverview>, Box<dyn Error>>;
 }
-
