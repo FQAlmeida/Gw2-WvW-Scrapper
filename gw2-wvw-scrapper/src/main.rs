@@ -8,8 +8,6 @@ use tokio_cron_scheduler::{Job, JobScheduler};
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     dotenv::dotenv().ok();
-    let args: Vec<String> = env::args().collect();
-
     let scheduler = JobScheduler::new().await.unwrap();
 
     // let default_basepath = String::from(".");
