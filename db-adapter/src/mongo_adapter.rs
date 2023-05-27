@@ -111,10 +111,8 @@ impl db_adapter::DbAdapter for MongoClientAdapter {
     async fn insert(&self, data: &MatchupOverview) -> Result<(), Box<dyn Error>> {
         let existent_id = self.check_exists(data).await?;
         if let Some(id) = existent_id {
-            dbg!(format!("Found {}", &id));
             return self.update(data, id).await;
         }
-        dbg!(format!("Did not found, inserting"));
         self.client
             .database("gw2-wvw-scrapper")
             .collection::<MatchupOverviewMongo>("gw2-wvw-scrapper")
@@ -137,8 +135,6 @@ impl db_adapter::DbAdapter for MongoClientAdapter {
         start_date: &DateTime<Utc>,
         end_date: &DateTime<Utc>,
     ) -> Result<Vec<MatchupOverview>, Box<dyn Error>> {
-        dbg!(&start_date);
-        dbg!(&end_date);
         let filter = bson::doc! {
             "initial_date_matchup": {
                 "$gte": bson::DateTime::from_chrono(*start_date)
